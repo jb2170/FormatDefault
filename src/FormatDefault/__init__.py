@@ -1,6 +1,6 @@
 """str.format but with default values"""
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 class _DefaultWrapper:
     def __init__(self, value, default: str = "NA") -> None:
@@ -16,13 +16,14 @@ class _DefaultWrapper:
             return self.default
 
 def format_default(s: str, params: dict[str], default: str = "NA") -> str:
-    params = params.copy()
+    wrapped_params = {
+        k: _DefaultWrapper(v, default = default)
+        for k, v in params.items()
+    }
+
     while True:
         try:
-            return s.format(**{
-                k: _DefaultWrapper(v, default = default)
-                for k, v in params.items()
-            })
+            return s.format(**wrapped_params)
         except KeyError as e:
             missing_key: str = e.args[0]
-            params[missing_key] = default
+            wrapped_params[missing_key] = _DefaultWrapper(default, default = default)
